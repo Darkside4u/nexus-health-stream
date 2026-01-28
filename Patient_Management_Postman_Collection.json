@@ -1,0 +1,437 @@
+{
+  "info": {
+    "name": "Patient Management API - Kafka & JWT",
+    "_postman_id": "patient-mgmt-kafka-jwt",
+    "description": "Complete API collection for Patient Management System with JWT authentication and Kafka integration",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login - Get JWT Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Save token to collection variable",
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.set('token', pm.response.text());",
+                  "    console.log('Token saved:', pm.response.text());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "user",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "pass",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/authenticate",
+              "host": ["{{baseUrl}}"],
+              "path": ["authenticate"]
+            },
+            "description": "Authenticate with username and password to get JWT token. Token is automatically saved to collection variable."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Patient Management",
+      "item": [
+        {
+          "name": "Create Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Save patient ID for other requests",
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('patientId', jsonData.id);",
+                  "    console.log('Patient created with ID:', jsonData.id);",
+                  "}",
+                  "",
+                  "// Check for Kafka event in logs",
+                  "console.log('Check application logs for Kafka event publishing');",
+                  "console.log('Expected: CREATED event published to patient.created topic');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"bloodGroup\": \"A_POSITIVE\",\n  \"patientDiagnosis\": \"Regular checkup - Fever and cold symptoms\",\n  \"diagnosisDate\": \"2026-01-28\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/patients",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients"]
+            },
+            "description": "Create a new patient record. This will trigger a Kafka event with type CREATED."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Patients",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients"]
+            },
+            "description": "Retrieve all patient records from the database."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Patient by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/{{patientId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients", "{{patientId}}"]
+            },
+            "description": "Retrieve a specific patient by their ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Check response",
+                  "if (pm.response.code === 200) {",
+                  "    console.log('Patient updated successfully');",
+                  "    console.log('Check application logs for Kafka UPDATED event');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe Updated\",\n  \"email\": \"john.updated@example.com\",\n  \"bloodGroup\": \"B_POSITIVE\",\n  \"patientDiagnosis\": \"Follow-up checkup - Patient recovered\",\n  \"diagnosisDate\": \"2026-01-29\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/{{patientId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients", "{{patientId}}"]
+            },
+            "description": "Update an existing patient record. This will trigger a Kafka event with type UPDATED."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Check response",
+                  "if (pm.response.code === 204) {",
+                  "    console.log('Patient deleted successfully');",
+                  "    console.log('Check application logs for Kafka DELETED event');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/{{patientId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients", "{{patientId}}"]
+            },
+            "description": "Delete a patient record. This will trigger a Kafka event with type DELETED."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sample Workflow",
+      "item": [
+        {
+          "name": "Step 1: Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('token', pm.response.text());"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "user",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "pass",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/authenticate",
+              "host": ["{{baseUrl}}"],
+              "path": ["authenticate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Step 2: Create Patient Alice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('aliceId', pm.response.json().id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice Smith\",\n  \"email\": \"alice.smith@example.com\",\n  \"bloodGroup\": \"O_NEGATIVE\",\n  \"patientDiagnosis\": \"Annual physical examination\",\n  \"diagnosisDate\": \"2026-01-28\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/patients",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Step 3: Create Patient Bob",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('bobId', pm.response.json().id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bob Johnson\",\n  \"email\": \"bob.johnson@example.com\",\n  \"bloodGroup\": \"AB_POSITIVE\",\n  \"patientDiagnosis\": \"Routine blood test\",\n  \"diagnosisDate\": \"2026-01-28\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/patients",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Step 4: View All Patients",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Step 5: Update Alice",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice Smith-Johnson\",\n  \"email\": \"alice.smith.johnson@example.com\",\n  \"bloodGroup\": \"O_NEGATIVE\",\n  \"patientDiagnosis\": \"Follow-up physical - All clear\",\n  \"diagnosisDate\": \"2026-01-30\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/{{aliceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients", "{{aliceId}}"]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Complete workflow demonstrating all features with multiple patients"
+    },
+    {
+      "name": "Test Security",
+      "item": [
+        {
+          "name": "Unauthorized Access (No Token)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients"]
+            },
+            "description": "This request should fail with 401 Unauthorized because no JWT token is provided."
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid Token",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "invalid_token_here",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients"]
+            },
+            "description": "This request should fail with 401 Unauthorized because the token is invalid."
+          },
+          "response": []
+        }
+      ],
+      "description": "Test security features - these requests should fail"
+    }
+  ]
+}
