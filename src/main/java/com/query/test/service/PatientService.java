@@ -10,6 +10,8 @@ import com.query.test.repository.PatientRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -58,19 +60,35 @@ public class PatientService {
     public PatientResponseDto getPatientById(Long id) {
         log.info("Fetching patient id={}", id);
 
-        Patient patient = patientRepository.findById(id)
+        Patient patient = patientRepository.findByIdWithDiagnoses(id)
                 .orElseThrow(() -> new PatientNotFoundException(id));
 
         return toResponseDto(patient);
     }
 
+    /**
+     * Get all patients (optimized with JOIN FETCH to avoid N+1 queries)
+     * Note: For very large datasets, consider using the paginated version
+     */
     public List<PatientResponseDto> getAllPatients() {
-        log.info("Fetching all patients");
+        log.info("Fetching all patients with diagnoses");
 
-        return patientRepository.findAll()
+        return patientRepository.findAllWithDiagnoses()
                 .stream()
                 .map(this::toResponseDto)
                 .toList();
+    }
+
+    /**
+     * Get all patients with pagination support
+     * This is the recommended method for production use with large datasets
+     */
+    public Page<PatientResponseDto> getAllPatientsPaginated(Pageable pageable) {
+        log.info("Fetching patients with pagination: page={}, size={}", 
+                pageable.getPageNumber(), pageable.getPageSize());
+
+        return patientRepository.findAll(pageable)
+                .map(this::toResponseDto);
     }
 
     // ---------------- UPDATE ----------------
