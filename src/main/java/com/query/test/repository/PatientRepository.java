@@ -26,8 +26,10 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
     List<Patient> findAllWithDiagnoses();
     
     /**
-     * Fetch patients with pagination (without diagnoses for efficiency)
-     * Use findByIdWithDiagnoses for individual patient details
+     * Fetch patients with pagination and diagnoses using JOIN FETCH to avoid N+1 query problem
+     * Note: Pagination with JOIN FETCH requires a count query
      */
-    Page<Patient> findAll(Pageable pageable);
+    @Query(value = "SELECT DISTINCT p FROM Patient p LEFT JOIN FETCH p.diagnoses",
+           countQuery = "SELECT COUNT(DISTINCT p) FROM Patient p")
+    Page<Patient> findAllWithDiagnoses(Pageable pageable);
 }

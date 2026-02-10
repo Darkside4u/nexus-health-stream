@@ -82,12 +82,13 @@ public class PatientService {
     /**
      * Get all patients with pagination support
      * This is the recommended method for production use with large datasets
+     * Uses JOIN FETCH to prevent N+1 queries
      */
     public Page<PatientResponseDto> getAllPatientsPaginated(Pageable pageable) {
         log.info("Fetching patients with pagination: page={}, size={}", 
                 pageable.getPageNumber(), pageable.getPageSize());
 
-        return patientRepository.findAll(pageable)
+        return patientRepository.findAllWithDiagnoses(pageable)
                 .map(this::toResponseDto);
     }
 
