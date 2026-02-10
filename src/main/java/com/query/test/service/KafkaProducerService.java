@@ -4,6 +4,7 @@ import com.query.test.dto.PatientEventDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
@@ -44,45 +45,42 @@ public class KafkaProducerService {
     }
 
     /**
-     * Send patient created event to Kafka
+     * Send patient created event to Kafka (asynchronously)
      *
      * @param event The patient event DTO containing patient information
      */
+    @Async
     public void sendPatientCreatedEvent(PatientEventDto event) {
         log.info("Sending patient created event to topic: {} for patientId: {}",
                 patientCreatedTopic, event.getPatientId());
 
         sendEvent(patientCreatedTopic, event.getPatientId().toString(), event);
-        // Also send to general events topic
-        sendEvent(patientEventsTopic, event.getPatientId().toString(), event);
     }
 
     /**
-     * Send patient updated event to Kafka
+     * Send patient updated event to Kafka (asynchronously)
      *
      * @param event The patient event DTO containing updated patient information
      */
+    @Async
     public void sendPatientUpdatedEvent(PatientEventDto event) {
         log.info("Sending patient updated event to topic: {} for patientId: {}",
                 patientUpdatedTopic, event.getPatientId());
 
         sendEvent(patientUpdatedTopic, event.getPatientId().toString(), event);
-        // Also send to general events topic
-        sendEvent(patientEventsTopic, event.getPatientId().toString(), event);
     }
 
     /**
-     * Send patient deleted event to Kafka
+     * Send patient deleted event to Kafka (asynchronously)
      *
      * @param event The patient event DTO containing deleted patient information
      */
+    @Async
     public void sendPatientDeletedEvent(PatientEventDto event) {
         log.info("Sending patient deleted event to topic: {} for patientId: {}",
                 patientDeletedTopic, event.getPatientId());
 
         sendEvent(patientDeletedTopic, event.getPatientId().toString(), event);
-        // Also send to general events topic
-        sendEvent(patientEventsTopic, event.getPatientId().toString(), event);
     }
 
     /**

@@ -33,7 +33,8 @@ public class Patient {
     @OneToMany(
             mappedBy = "patient",
             cascade = CascadeType.ALL,
-            orphanRemoval = true
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
     )
     @OrderBy("diagnosisDate DESC")
     private List<PatientDiagnosis> diagnoses = new ArrayList<>();

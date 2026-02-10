@@ -6,7 +6,9 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "patient_diagnoses")
+@Table(name = "patient_diagnoses", indexes = {
+    @Index(name = "idx_patient_id", columnList = "patient_id")
+})
 @Getter
 @Setter
 public class PatientDiagnosis {
