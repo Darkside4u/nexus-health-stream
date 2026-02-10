@@ -67,14 +67,14 @@ class PatientServiceTest {
         Patient patient = new Patient();
         patient.setId(1L);
         patient.setName("John Doe");
-        when(patientRepository.findById(1L)).thenReturn(Optional.of(patient));
+        when(patientRepository.findByIdWithDiagnoses(1L)).thenReturn(Optional.of(patient));
         PatientResponseDto response = patientService.getPatientById(1L);
         assertEquals("John Doe", response.getName());
     }
 
     @Test
     void getPatientById_shouldThrowIfNotFound() {
-        when(patientRepository.findById(2L)).thenReturn(Optional.empty());
+        when(patientRepository.findByIdWithDiagnoses(2L)).thenReturn(Optional.empty());
         assertThrows(PatientNotFoundException.class, () -> patientService.getPatientById(2L));
     }
 
@@ -86,7 +86,7 @@ class PatientServiceTest {
         Patient patient2 = new Patient();
         patient2.setId(2L);
         patient2.setName("Jane Doe");
-        when(patientRepository.findAll()).thenReturn(List.of(patient1, patient2));
+        when(patientRepository.findAllWithDiagnoses()).thenReturn(List.of(patient1, patient2));
         List<PatientResponseDto> responses = patientService.getAllPatients();
         assertEquals(2, responses.size());
         assertEquals("John Doe", responses.get(0).getName());

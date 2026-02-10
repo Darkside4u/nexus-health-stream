@@ -38,7 +38,7 @@ class KafkaProducerServiceTest {
         PatientEventDto event = PatientEventDto.builder().patientId(1L).eventType("CREATED").build();
         when(kafkaTemplate.send(anyString(), anyString(), any())).thenReturn(mock(java.util.concurrent.CompletableFuture.class));
         kafkaProducerService.sendPatientCreatedEvent(event);
-        verify(kafkaTemplate, times(2)).send(anyString(), anyString(), eq(event));
+        verify(kafkaTemplate, times(1)).send(anyString(), anyString(), eq(event));
     }
 
     @Test
@@ -46,7 +46,7 @@ class KafkaProducerServiceTest {
         PatientEventDto event = PatientEventDto.builder().patientId(1L).eventType("UPDATED").build();
         when(kafkaTemplate.send(anyString(), anyString(), any())).thenReturn(mock(java.util.concurrent.CompletableFuture.class));
         kafkaProducerService.sendPatientUpdatedEvent(event);
-        verify(kafkaTemplate, times(2)).send(anyString(), anyString(), eq(event));
+        verify(kafkaTemplate, times(1)).send(anyString(), anyString(), eq(event));
     }
 
     @Test
@@ -54,7 +54,7 @@ class KafkaProducerServiceTest {
         PatientEventDto event = PatientEventDto.builder().patientId(1L).eventType("DELETED").build();
         when(kafkaTemplate.send(anyString(), anyString(), any())).thenReturn(mock(java.util.concurrent.CompletableFuture.class));
         kafkaProducerService.sendPatientDeletedEvent(event);
-        verify(kafkaTemplate, times(2)).send(anyString(), anyString(), eq(event));
+        verify(kafkaTemplate, times(1)).send(anyString(), anyString(), eq(event));
     }
 }
 
